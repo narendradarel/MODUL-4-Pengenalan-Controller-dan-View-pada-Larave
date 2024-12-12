@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
+use App\Models\Position;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -15,10 +17,14 @@ class EmployeeController extends Controller
     {
         //
         $pageTitle = 'Employee List';
-        $employees = DB::select('select *, employees.id as employee_id, positions.name as position_name from employees left join positions on employees.position_id = positions.id');
+        // $employees = DB::select('select *, employees.id as employee_id, positions.name as position_name from employees left join positions on employees.position_id = positions.id');
+
+        // ELOQUENT
+        $employees = Employee::all();
+
         return view('employee.index', [
             'pageTitle' => $pageTitle,
-            'employees' => $employees,
+            'employees' => $employees
         ]);
     }
 
@@ -29,7 +35,11 @@ class EmployeeController extends Controller
     {
         //
         $pageTitle = 'Create Employee';
-        $positions = DB::select('select * from positions');
+        // $positions = DB::select('select * from positions');
+
+        // ELOQUENT
+        $positions = Position::all();
+
         return view('employee.create', compact('pageTitle', 'positions'));
 
     }
@@ -55,13 +65,22 @@ class EmployeeController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        DB::table('employees')->insert([
-            'firstname' => $request->firstName,
-            'lastname' => $request->lastName,
-            'email' => $request->email,
-            'age' => $request->age,
-            'position_id' => $request->position,
-        ]);
+        // DB::table('employees')->insert([
+        //     'firstname' => $request->firstName,
+        //     'lastname' => $request->lastName,
+        //     'email' => $request->email,
+        //     'age' => $request->age,
+        //     'position_id' => $request->position,
+        // ]);
+
+        // ELOQUENT
+        $employee = new Employee;
+        $employee->firstname = $request->firstName;
+        $employee->lastname = $request->lastName;
+        $employee->email = $request->email;
+        $employee->age = $request->age;
+        $employee->position_id = $request->position;
+        $employee->save();
         return redirect()->route('employees.index');
 
     }
@@ -74,7 +93,11 @@ class EmployeeController extends Controller
         //
         $pageTitle = 'Employee Detail';
         // RAW SQL QUERY
-        $employee = collect(DB::select(' select *, employees.id as employee_id, positions.name as position_name from employees left join positions on employees.position_id = positions.id where employees.id = ?', [$id]))->first();
+        // $employee = collect(DB::select(' select *, employees.id as employee_id, positions.name as position_name from employees left join positions on employees.position_id = positions.id where employees.id = ?', [$id]))->first();
+
+        // ELOQUENT
+        $employee = Employee::find($id);
+
         return view('employee.show', compact('pageTitle', 'employee'));
     }
 
@@ -86,8 +109,12 @@ class EmployeeController extends Controller
         //
         $pageTitle = 'Edit Employee';
 
-        $employee = DB::table('employees')->where('id', $id)->first();
-        $positions = DB::table('positions')->get();
+        // $employee = DB::table('employees')->where('id', $id)->first();
+        // $positions = DB::table('positions')->get();
+
+        // ELOQUENT
+        $positions = Position::all();
+        $employee = Employee::find($id);
 
         return view('employee.edit', compact('pageTitle', 'employee', 'positions'));
     }
@@ -116,26 +143,35 @@ class EmployeeController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        DB::table('employees')->where('id', $id)->update([
-            'firstname' => $request->firstName,
-            'lastname' => $request->lastName,
-            'email' => $request->email,
-            'age' => $request->age,
-            'position_id' => $request->position,
-        ]);
+        // DB::table('employees')->where('id', $id)->update([
+        //     'firstname' => $request->firstName,
+        //     'lastname' => $request->lastName,
+        //     'email' => $request->email,
+        //     'age' => $request->age,
+        //     'position_id' => $request->position,
+        // ]);
+
+        // ELOQUENT
+        $employee = Employee::find($id);
+        $employee->firstname = $request->firstName;
+        $employee->lastname = $request->lastName;
+        $employee->email = $request->email;
+        $employee->age = $request->age;
+        $employee->position_id = $request->position;
+        $employee->save();
 
         return redirect()->route('employees.index');
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         //
-        DB::table('employees')
-            ->where('id', $id)
-            ->delete();
+        // DB::table('employees')
+        //     ->where('id', $id)
+        //     ->delete();
+
+        // ELOQUENT
+        Employee::find($id)->delete();
+        
         return redirect()->route('employees.index');
     }
 }
